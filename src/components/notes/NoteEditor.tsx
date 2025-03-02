@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useNotes } from "@/hooks/use-notes";
@@ -22,9 +21,6 @@ import {
 import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
 
-// Add this dependency
-<lov-add-dependency>react-markdown@8.0.7</lov-add-dependency>
-
 export function NoteEditor() {
   const { noteId } = useParams();
   const { getNote, createNote, updateNote, deleteNote, isLoading } = useNotes();
@@ -41,7 +37,6 @@ export function NoteEditor() {
   
   const isNewNote = noteId === "new";
   
-  // Load note data if editing an existing note
   useEffect(() => {
     if (!isNewNote && noteId) {
       const existingNote = getNote(noteId);
@@ -50,19 +45,16 @@ export function NoteEditor() {
         setTitle(existingNote.title);
         setContent(existingNote.content);
       } else {
-        // Note not found, navigate back to dashboard
         toast.error("Note not found");
         navigate("/dashboard");
       }
     }
     
-    // Focus on title input when creating a new note
     if (isNewNote && titleInputRef.current) {
       titleInputRef.current.focus();
     }
   }, [noteId, getNote, navigate, isNewNote]);
   
-  // Track unsaved changes
   useEffect(() => {
     if (isNewNote) {
       setHasUnsavedChanges(title.trim() !== "" || content.trim() !== "");
@@ -76,7 +68,6 @@ export function NoteEditor() {
     }
   }, [title, content, isNewNote, noteId, getNote]);
   
-  // Warn about unsaved changes before leaving
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -113,7 +104,6 @@ export function NoteEditor() {
       }
     } catch (error) {
       console.error("Failed to save note:", error);
-      // Error is handled in the notes hook
     } finally {
       setIsSaving(false);
     }
@@ -129,7 +119,6 @@ export function NoteEditor() {
       navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("Failed to delete note:", error);
-      // Error is handled in the notes hook
     } finally {
       setIsDeleting(false);
     }
