@@ -32,11 +32,13 @@ const Editor = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-background to-background/95">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <Header />
-          <NoteEditor />
+          <main className="flex-1 p-4 md:p-6 overflow-hidden">
+            <NoteEditor />
+          </main>
         </div>
       </div>
     </SidebarProvider>

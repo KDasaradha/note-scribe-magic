@@ -27,16 +27,17 @@ export function NoteCard({ note }: NoteCardProps) {
   
   return (
     <Card 
-      className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      className="note-card overflow-hidden cursor-pointer border border-border/50 bg-card/80 backdrop-blur-sm"
       onClick={handleClick}
     >
-      <CardHeader className="pb-2">
-        <CardTitle className="line-clamp-1 text-lg">{note.title}</CardTitle>
+      <CardHeader className="pb-2 bg-gradient-to-r from-card to-background/80 border-b border-border/10">
+        <CardTitle className="line-clamp-1 text-lg font-medium">{note.title}</CardTitle>
       </CardHeader>
-      <CardContent className="pb-2">
+      <CardContent className="pb-2 pt-3">
         <p className="text-muted-foreground text-sm line-clamp-3">{contentPreview}</p>
       </CardContent>
-      <CardFooter className="text-xs text-muted-foreground pt-0">
+      <CardFooter className="text-xs text-muted-foreground pt-0 pb-3 flex items-center gap-2">
+        <span className="inline-block w-2 h-2 rounded-full bg-primary/50"></span>
         Updated {formattedDate}
       </CardFooter>
     </Card>
