@@ -19,7 +19,7 @@ const Editor = () => {
 
   useEffect(() => {
     // Set page title
-    document.title = "Markdown Editor - Notes App";
+    document.title = "Notebook Editor - Notes App";
     
     return () => {
       document.title = "Notes App";
@@ -32,12 +32,14 @@ const Editor = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-background to-background/95">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-indigo-50">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <Header />
           <main className="flex-1 p-4 md:p-6 overflow-hidden">
-            <NoteEditor />
+            <div className="notebook-editor-container rounded-lg overflow-hidden shadow-lg border border-blue-200 bg-white">
+              <NoteEditor />
+            </div>
           </main>
         </div>
       </div>

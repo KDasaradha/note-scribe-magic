@@ -181,6 +181,26 @@
     @apply border-t border-border px-4 py-2;
   }
 
+  /* Notebook Paper Styling */
+  .notebook-paper {
+    @apply bg-blue-50 border-blue-100;
+    background-image: linear-gradient(#e1ebf2 1px, transparent 1px);
+    background-size: 100% 1.5rem;
+  }
+
+  .notebook-text {
+    @apply font-medium text-blue-900/80 leading-6;
+    padding-top: 3px; /* Align with the lines */
+  }
+
+  .notebook-holes {
+    @apply absolute left-[12px] top-0 bottom-0 flex flex-col justify-evenly items-center z-10 pointer-events-none;
+  }
+
+  .notebook-hole {
+    @apply bg-blue-50 border border-blue-200 rounded-full w-[10px] h-[10px] shadow-inner;
+  }
+
   .editor-transition {
     @apply transition-all duration-200 ease-in-out;
   }

@@ -27,16 +27,22 @@ export function NoteCard({ note }: NoteCardProps) {
   
   return (
     <Card 
-      className="note-card overflow-hidden cursor-pointer border border-border/50 bg-card/80 backdrop-blur-sm"
+      className="notebook-paper relative overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
       onClick={handleClick}
     >
-      <CardHeader className="pb-2 bg-gradient-to-r from-card to-background/80 border-b border-border/10">
-        <CardTitle className="line-clamp-1 text-lg font-medium">{note.title}</CardTitle>
+      <div className="absolute left-0 top-0 bottom-0 w-[25px] bg-red-100 border-r border-red-200"></div>
+      <div className="notebook-holes">
+        <div className="notebook-hole"></div>
+        <div className="notebook-hole"></div>
+        <div className="notebook-hole"></div>
+      </div>
+      <CardHeader className="pb-2 pl-10 border-b border-slate-200">
+        <CardTitle className="line-clamp-1 text-lg font-medium text-blue-900">{note.title}</CardTitle>
       </CardHeader>
-      <CardContent className="pb-2 pt-3">
-        <p className="text-muted-foreground text-sm line-clamp-3">{contentPreview}</p>
+      <CardContent className="pb-2 pt-3 pl-10">
+        <p className="text-muted-foreground text-sm line-clamp-3 notebook-text">{contentPreview}</p>
       </CardContent>
-      <CardFooter className="text-xs text-muted-foreground pt-0 pb-3 flex items-center gap-2">
+      <CardFooter className="text-xs text-blue-700 pt-0 pb-3 pl-10 flex items-center gap-2">
         <span className="inline-block w-2 h-2 rounded-full bg-primary/50"></span>
         Updated {formattedDate}
       </CardFooter>
