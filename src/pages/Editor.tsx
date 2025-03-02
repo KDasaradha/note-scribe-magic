@@ -17,6 +17,15 @@ const Editor = () => {
     }
   }, [isAuthenticated, isLoading, navigate]);
 
+  useEffect(() => {
+    // Set page title
+    document.title = "Markdown Editor - Notes App";
+    
+    return () => {
+      document.title = "Notes App";
+    };
+  }, []);
+
   if (isLoading || !isAuthenticated) {
     return null; // Will redirect in the useEffect
   }
