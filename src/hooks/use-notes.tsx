@@ -2,25 +2,20 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useAuth } from "./use-auth";
 import { toast } from "sonner";
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
-}
+import { Note } from "@/types";
 
 interface NotesContextType {
   notes: Note[];
   isLoading: boolean;
   error: Error | null;
-  createNote: (title: string, content: string) => Promise<Note>;
+  createNote: (title: string, content: string, parentId?: string) => Promise<Note>;
+  createNotebook: (title: string) => Promise<Note>;
   updateNote: (id: string, title: string, content: string) => Promise<Note>;
   deleteNote: (id: string) => Promise<void>;
   getNote: (id: string) => Note | undefined;
   searchNotes: (query: string) => Note[];
+  getChildNotes: (parentId: string) => Note[];
+  getRootNotes: () => Note[];
 }
 
 const NotesContext = createContext<NotesContextType | undefined>(undefined);
@@ -77,7 +72,7 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [notes, user]);
   
-  const createNote = async (title: string, content: string): Promise<Note> => {
+  const createNote = async (title: string, content: string, parentId?: string): Promise<Note> => {
     if (!user) throw new Error("You must be logged in to create notes");
     
     setIsLoading(true);
@@ -92,13 +87,58 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         userId: user.id,
+        parentId: parentId,
       };
       
-      setNotes(prev => [...prev, newNote]);
+      // If this is a child note, update the parent's children array
+      let updatedNotes = [...notes];
+      if (parentId) {
+        const parentIndex = notes.findIndex(note => note.id === parentId);
+        if (parentIndex !== -1) {
+          const parent = {...notes[parentIndex]};
+          parent.children = parent.children || [];
+          parent.children.push(newNote.id);
+          updatedNotes[parentIndex] = parent;
+        }
+      }
+      
+      setNotes([...updatedNotes, newNote]);
       toast.success("Note created successfully");
       return newNote;
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to create note");
+      setError(error);
+      toast.error(error.message);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const createNotebook = async (title: string): Promise<Note> => {
+    if (!user) throw new Error("You must be logged in to create notebooks");
+    
+    setIsLoading(true);
+    try {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const newNotebook: Note = {
+        id: `notebook-${Date.now()}`,
+        title: title || "Untitled Notebook",
+        content: "",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        userId: user.id,
+        isNotebook: true,
+        children: [],
+      };
+      
+      setNotes(prev => [...prev, newNotebook]);
+      toast.success("Notebook created successfully");
+      return newNotebook;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Failed to create notebook");
       setError(error);
       toast.error(error.message);
       throw error;
@@ -158,8 +198,40 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Note not found");
       }
       
-      const filteredNotes = notes.filter(note => note.id !== id);
-      setNotes(filteredNotes);
+      const noteToDelete = notes.find(note => note.id === id);
+      
+      // First, handle child notes if this is a notebook
+      if (noteToDelete?.isNotebook && noteToDelete.children?.length) {
+        // Recursively delete all child notes
+        const deleteChildren = async (childIds: string[]) => {
+          for (const childId of childIds) {
+            const child = notes.find(note => note.id === childId);
+            if (child?.children?.length) {
+              await deleteChildren(child.children);
+            }
+          }
+          // Filter out all children
+          return notes.filter(note => !childIds.includes(note.id));
+        };
+        
+        const remainingNotes = await deleteChildren(noteToDelete.children);
+        setNotes(remainingNotes.filter(note => note.id !== id));
+      } else {
+        // If this is a child note, update the parent's children array
+        let updatedNotes = [...notes];
+        if (noteToDelete?.parentId) {
+          const parentIndex = updatedNotes.findIndex(note => note.id === noteToDelete.parentId);
+          if (parentIndex !== -1) {
+            const parent = {...updatedNotes[parentIndex]};
+            parent.children = parent.children?.filter(childId => childId !== id) || [];
+            updatedNotes[parentIndex] = parent;
+          }
+        }
+        
+        // Now remove the note itself
+        setNotes(updatedNotes.filter(note => note.id !== id));
+      }
+      
       toast.success("Note deleted successfully");
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to delete note");
@@ -186,6 +258,14 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
     );
   };
   
+  const getChildNotes = (parentId: string): Note[] => {
+    return notes.filter(note => note.parentId === parentId);
+  };
+  
+  const getRootNotes = (): Note[] => {
+    return notes.filter(note => !note.parentId);
+  };
+  
   return (
     <NotesContext.Provider
       value={{
@@ -193,10 +273,13 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
         isLoading,
         error,
         createNote,
+        createNotebook,
         updateNote,
         deleteNote,
         getNote,
         searchNotes,
+        getChildNotes,
+        getRootNotes,
       }}
     >
       {children}
