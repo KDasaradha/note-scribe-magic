@@ -37,8 +37,8 @@ const Dashboard = () => {
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <Header />
-          <main className="flex-1">
-            <div className="container py-8">
+          <main className="flex-1 overflow-auto">
+            <div className="container max-w-6xl py-8 px-4 md:px-6">
               <div className="mb-8 flex items-center">
                 <Book className="text-blue-800 h-8 w-8 mr-3" />
                 <div>
