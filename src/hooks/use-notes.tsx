@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useAuth } from "./use-auth";
 import { toast } from "sonner";
@@ -9,18 +8,19 @@ interface NotesContextType {
   isLoading: boolean;
   error: Error | null;
   createNote: (title: string, content: string, parentId?: string) => Promise<Note>;
-  createNotebook: (title: string) => Promise<Note>;
+  createNotebook: (title: string, parentId?: string) => Promise<Note>;
   updateNote: (id: string, title: string, content: string) => Promise<Note>;
   deleteNote: (id: string) => Promise<void>;
   getNote: (id: string) => Note | undefined;
   searchNotes: (query: string) => Note[];
   getChildNotes: (parentId: string) => Note[];
   getRootNotes: () => Note[];
+  getNoteHierarchy: (noteId?: string) => Note[];
+  moveNote: (noteId: string, newParentId: string | null) => Promise<void>;
 }
 
 const NotesContext = createContext<NotesContextType | undefined>(undefined);
 
-// Mock notes storage (would be replaced with a real database in production)
 const mockNotesStorage = {
   getNotes: (userId: string): Note[] => {
     const allNotes = JSON.parse(localStorage.getItem("notes") || "[]");
@@ -28,15 +28,10 @@ const mockNotesStorage = {
   },
   
   saveNotes: (notes: Note[]) => {
-    // Get all notes from all users
     const allNotes = JSON.parse(localStorage.getItem("notes") || "[]");
-    
-    // Filter out notes from the current user
     const otherUsersNotes = allNotes.filter(
       (note: Note) => !notes.some(n => n.id === note.id)
     );
-    
-    // Save all notes back to localStorage
     localStorage.setItem("notes", JSON.stringify([...otherUsersNotes, ...notes]));
   }
 };
@@ -47,7 +42,6 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
-  // Load notes when user changes
   useEffect(() => {
     if (user) {
       try {
@@ -65,7 +59,6 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user]);
   
-  // Save notes to localStorage whenever they change
   useEffect(() => {
     if (user && notes.length > 0) {
       mockNotesStorage.saveNotes(notes);
@@ -77,7 +70,6 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
     
     setIsLoading(true);
     try {
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const newNote: Note = {
@@ -90,12 +82,16 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
         parentId: parentId,
       };
       
-      // If this is a child note, update the parent's children array
       let updatedNotes = [...notes];
       if (parentId) {
         const parentIndex = notes.findIndex(note => note.id === parentId);
         if (parentIndex !== -1) {
           const parent = {...notes[parentIndex]};
+          
+          if (!parent.isNotebook) {
+            parent.isNotebook = true;
+          }
+          
           parent.children = parent.children || [];
           parent.children.push(newNote.id);
           updatedNotes[parentIndex] = parent;
@@ -115,12 +111,11 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const createNotebook = async (title: string): Promise<Note> => {
+  const createNotebook = async (title: string, parentId?: string): Promise<Note> => {
     if (!user) throw new Error("You must be logged in to create notebooks");
     
     setIsLoading(true);
     try {
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const newNotebook: Note = {
@@ -132,9 +127,26 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
         userId: user.id,
         isNotebook: true,
         children: [],
+        parentId: parentId,
       };
       
-      setNotes(prev => [...prev, newNotebook]);
+      let updatedNotes = [...notes];
+      if (parentId) {
+        const parentIndex = notes.findIndex(note => note.id === parentId);
+        if (parentIndex !== -1) {
+          const parent = {...notes[parentIndex]};
+          
+          if (!parent.isNotebook) {
+            parent.isNotebook = true;
+          }
+          
+          parent.children = parent.children || [];
+          parent.children.push(newNotebook.id);
+          updatedNotes[parentIndex] = parent;
+        }
+      }
+      
+      setNotes([...updatedNotes, newNotebook]);
       toast.success("Notebook created successfully");
       return newNotebook;
     } catch (err) {
@@ -152,7 +164,6 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
     
     setIsLoading(true);
     try {
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const noteIndex = notes.findIndex(note => note.id === id);
@@ -189,7 +200,6 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
     
     setIsLoading(true);
     try {
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const noteExists = notes.some(note => note.id === id);
@@ -200,9 +210,7 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
       
       const noteToDelete = notes.find(note => note.id === id);
       
-      // First, handle child notes if this is a notebook
       if (noteToDelete?.isNotebook && noteToDelete.children?.length) {
-        // Recursively delete all child notes
         const deleteChildren = async (childIds: string[]) => {
           for (const childId of childIds) {
             const child = notes.find(note => note.id === childId);
@@ -210,14 +218,12 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
               await deleteChildren(child.children);
             }
           }
-          // Filter out all children
           return notes.filter(note => !childIds.includes(note.id));
         };
         
         const remainingNotes = await deleteChildren(noteToDelete.children);
         setNotes(remainingNotes.filter(note => note.id !== id));
       } else {
-        // If this is a child note, update the parent's children array
         let updatedNotes = [...notes];
         if (noteToDelete?.parentId) {
           const parentIndex = updatedNotes.findIndex(note => note.id === noteToDelete.parentId);
@@ -228,7 +234,6 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
           }
         }
         
-        // Now remove the note itself
         setNotes(updatedNotes.filter(note => note.id !== id));
       }
       
@@ -266,6 +271,70 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
     return notes.filter(note => !note.parentId);
   };
   
+  const getNoteHierarchy = (startId?: string): Note[] => {
+    const startNotes = startId 
+      ? notes.filter(note => note.parentId === startId)
+      : notes.filter(note => !note.parentId);
+    
+    return startNotes.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  };
+  
+  const moveNote = async (noteId: string, newParentId: string | null): Promise<void> => {
+    if (!user) throw new Error("You must be logged in to move notes");
+    
+    setIsLoading(true);
+    try {
+      const noteToMove = notes.find(note => note.id === noteId);
+      
+      if (!noteToMove) {
+        throw new Error("Note not found");
+      }
+      
+      let updatedNotes = [...notes];
+      if (noteToMove.parentId) {
+        const oldParentIndex = updatedNotes.findIndex(note => note.id === noteToMove.parentId);
+        if (oldParentIndex !== -1) {
+          const oldParent = {...updatedNotes[oldParentIndex]};
+          oldParent.children = oldParent.children?.filter(id => id !== noteId) || [];
+          updatedNotes[oldParentIndex] = oldParent;
+        }
+      }
+      
+      if (newParentId) {
+        const newParentIndex = updatedNotes.findIndex(note => note.id === newParentId);
+        if (newParentIndex !== -1) {
+          const newParent = {...updatedNotes[newParentIndex]};
+          
+          if (!newParent.isNotebook) {
+            newParent.isNotebook = true;
+          }
+          
+          newParent.children = newParent.children || [];
+          newParent.children.push(noteId);
+          updatedNotes[newParentIndex] = newParent;
+        }
+      }
+      
+      const noteIndex = updatedNotes.findIndex(note => note.id === noteId);
+      updatedNotes[noteIndex] = {
+        ...updatedNotes[noteIndex],
+        parentId: newParentId || undefined,
+      };
+      
+      setNotes(updatedNotes);
+      toast.success("Note moved successfully");
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Failed to move note");
+      setError(error);
+      toast.error(error.message);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return (
     <NotesContext.Provider
       value={{
@@ -280,6 +349,8 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
         searchNotes,
         getChildNotes,
         getRootNotes,
+        getNoteHierarchy,
+        moveNote,
       }}
     >
       {children}

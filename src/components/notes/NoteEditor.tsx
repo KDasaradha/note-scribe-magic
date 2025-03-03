@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useNotes } from "@/hooks/use-notes";
@@ -9,7 +8,8 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ChevronLeft, Loader2, Save, Trash, Bold, Italic, List, ListOrdered, 
-  Heading1, Heading2, Link, Image, Code, Quote, HelpCircle, FileDown, BookOpen
+  Heading1, Heading2, Link, Image, Code, Quote, HelpCircle, FileDown, BookOpen,
+  CheckSquare, Table, Plus, ArrowDown, ArrowRight, Edit
 } from "lucide-react";
 import { 
   AlertDialog,
@@ -32,11 +32,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export function NoteEditor() {
   const { noteId } = useParams();
-  const { getNote, createNote, updateNote, deleteNote, isLoading } = useNotes();
+  const { getNote, createNote, updateNote, deleteNote, createNotebook, isLoading } = useNotes();
   const navigate = useNavigate();
   
   const [title, setTitle] = useState("");
@@ -46,6 +52,8 @@ export function NoteEditor() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showMarkdownGuide, setShowMarkdownGuide] = useState(false);
+  const [isCreatingSubpage, setIsCreatingSubpage] = useState(false);
+  const [newSubpageTitle, setNewSubpageTitle] = useState("");
   
   const titleInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -139,6 +147,89 @@ export function NoteEditor() {
     }
   };
 
+  const handleCreateSubpage = async () => {
+    if (!noteId || isNewNote) {
+      toast.error("Please save the current note first");
+      return;
+    }
+    
+    if (!newSubpageTitle.trim()) {
+      toast.error("Please enter a title for the subpage");
+      return;
+    }
+    
+    try {
+      const note = getNote(noteId);
+      
+      if (note?.isNotebook) {
+        const newNote = await createNote(newSubpageTitle, "", noteId);
+        toast.success("Subpage created successfully");
+        navigate(`/editor/${newNote.id}`);
+      } else {
+        const updatedNote = await updateNote(noteId, title, content);
+        const updatedNoteWithNotebook = { ...updatedNote, isNotebook: true };
+        const newNote = await createNote(newSubpageTitle, "", noteId);
+        toast.success("Subpage created successfully");
+        navigate(`/editor/${newNote.id}`);
+      }
+      
+      setNewSubpageTitle("");
+      setIsCreatingSubpage(false);
+    } catch (error) {
+      console.error("Failed to create subpage:", error);
+      toast.error("Failed to create subpage");
+    }
+  };
+
+  const insertTableTemplate = () => {
+    const tableTemplate = `
+| Header 1 | Header 2 | Header 3 |
+|----------|----------|----------|
+| Cell 1   | Cell 2   | Cell 3   |
+| Cell 4   | Cell 5   | Cell 6   |
+`;
+    
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const beforeText = content.substring(0, start);
+    const afterText = content.substring(start);
+    
+    setContent(beforeText + tableTemplate + afterText);
+    
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + tableTemplate.length;
+      textarea.selectionStart = newCursorPos;
+      textarea.selectionEnd = newCursorPos;
+    }, 0);
+  };
+
+  const insertChecklist = () => {
+    const checklistTemplate = `
+- [ ] Task 1
+- [ ] Task 2
+- [ ] Task 3
+`;
+    
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const beforeText = content.substring(0, start);
+    const afterText = content.substring(start);
+    
+    setContent(beforeText + checklistTemplate + afterText);
+    
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + checklistTemplate.length;
+      textarea.selectionStart = newCursorPos;
+      textarea.selectionEnd = newCursorPos;
+    }, 0);
+  };
+
   const insertMarkdown = (markdown: string) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -151,7 +242,6 @@ export function NoteEditor() {
 
     let newText = '';
     
-    // Different handling depending on the type of markdown
     switch (markdown) {
       case 'bold':
         newText = beforeText + `**${selectedText || 'bold text'}**` + afterText;
@@ -164,6 +254,9 @@ export function NoteEditor() {
         break;
       case 'heading2':
         newText = beforeText + `\n## ${selectedText || 'Heading 2'}\n` + afterText;
+        break;
+      case 'heading3':
+        newText = beforeText + `\n### ${selectedText || 'Heading 3'}\n` + afterText;
         break;
       case 'list':
         newText = beforeText + `\n- ${selectedText || 'List item'}\n` + afterText;
@@ -189,10 +282,8 @@ export function NoteEditor() {
 
     setContent(newText);
     
-    // Focus back on textarea after inserting
     setTimeout(() => {
       textarea.focus();
-      // Calculate new cursor position
       const cursorPos = markdown === 'code' 
         ? beforeText.length + 5 
         : beforeText.length + markdown.length + 4;
@@ -256,6 +347,33 @@ export function NoteEditor() {
           </div>
           
           <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Subpage
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="space-y-4">
+                  <h4 className="font-medium leading-none">Create Subpage</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Add a new page nested under this one
+                  </p>
+                  <div className="flex flex-col space-y-2">
+                    <Input 
+                      placeholder="Subpage title" 
+                      value={newSubpageTitle} 
+                      onChange={(e) => setNewSubpageTitle(e.target.value)}
+                    />
+                    <Button onClick={handleCreateSubpage}>
+                      Create Subpage
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
             <Button
               variant="outline"
               size="sm"
@@ -414,6 +532,24 @@ export function NoteEditor() {
                 title="Numbered List"
               >
                 <ListOrdered className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2" 
+                onClick={insertChecklist}
+                title="Checklist"
+              >
+                <CheckSquare className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2" 
+                onClick={insertTableTemplate}
+                title="Insert Table"
+              >
+                <Table className="h-4 w-4" />
               </Button>
               <Button 
                 variant="ghost" 
