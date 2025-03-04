@@ -14,6 +14,7 @@ export interface Note {
   icon?: string; // Optional icon for the note
   coverImage?: string; // Optional cover image
   tags?: string[]; // Optional tags for categorization
+  gender?: "male" | "female" | "other"; // Gender for training
 }
 
 export interface TableBlock {
@@ -34,4 +35,10 @@ export interface ContentBlock {
   type: 'paragraph' | 'heading1' | 'heading2' | 'heading3' | 'bulletList' | 
         'numberedList' | 'checkbox' | 'table' | 'code' | 'quote' | 'image';
   content: string | TableBlock | ChecklistItem[] | string[];
+}
+
+export interface TrainingSettings {
+  gender: "male" | "female";
+  level: "beginner" | "intermediate" | "advanced";
+  duration: number; // in minutes
 }

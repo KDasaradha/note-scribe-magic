@@ -99,7 +99,7 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/90 backdrop-blur-sm border border-white/20 shadow-md rounded-lg;
+    @apply bg-card/90 backdrop-blur-sm border border-border shadow-md rounded-lg;
   }
   
   .markdown-content {
@@ -183,13 +183,17 @@
 
   /* Notebook Paper Styling */
   .notebook-paper {
-    @apply bg-blue-50 border-blue-100;
+    @apply bg-blue-50 border-blue-100 dark:bg-blue-950 dark:border-blue-900;
     background-image: linear-gradient(#e1ebf2 1px, transparent 1px);
     background-size: 100% 1.5rem;
   }
 
+  .dark .notebook-paper {
+    background-image: linear-gradient(rgba(25, 35, 60, 0.5) 1px, transparent 1px);
+  }
+
   .notebook-text {
-    @apply font-medium text-blue-900/80 leading-6;
+    @apply font-medium text-blue-900/80 dark:text-blue-100/80 leading-6;
     padding-top: 3px; /* Align with the lines */
   }
 
@@ -198,7 +202,7 @@
   }
 
   .notebook-hole {
-    @apply bg-blue-50 border border-blue-200 rounded-full w-[10px] h-[10px] shadow-inner;
+    @apply bg-blue-50 border border-blue-200 rounded-full w-[10px] h-[10px] shadow-inner dark:bg-blue-900 dark:border-blue-800;
   }
 
   /* Notebook Cover styling */
@@ -211,6 +215,14 @@
       2px 6px 0 -3px #3b82f6;
   }
 
+  .dark .notebook-cover {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    box-shadow: 
+      0 2px 4px rgba(0,0,0,0.3),
+      2px 4px 0 -2px #1e3a8a,
+      2px 6px 0 -3px #1d4ed8;
+  }
+
   .notebook-cover::before {
     content: '';
     position: absolute;
@@ -221,6 +233,10 @@
     background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
+  }
+
+  .dark .notebook-cover::before {
+    background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
   }
 
   /* Keep existing editor-transition code */

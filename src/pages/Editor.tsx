@@ -72,18 +72,18 @@ const Editor = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <Header />
           
-          <div className="bg-white border-b border-blue-100 px-4 py-2 shadow-sm">
+          <div className="bg-card border-b border-border px-4 py-2 shadow-sm">
             <div className="container max-w-6xl flex items-center flex-wrap gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/dashboard")}
-                className="mr-1 text-blue-700 h-8"
+                className="mr-1 text-primary h-8"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 All Notebooks
@@ -93,12 +93,12 @@ const Editor = () => {
                 <>
                   {parentChain.map((parent, index) => (
                     <div key={parent.id} className="flex items-center">
-                      <span className="mx-1 text-blue-300">/</span>
+                      <span className="mx-1 text-muted-foreground">/</span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => navigate(`/editor/${parent.id}`)}
-                        className="text-blue-700 h-8 px-2"
+                        className="text-primary h-8 px-2"
                       >
                         {index === 0 ? (
                           <Book className="h-4 w-4 mr-1 flex-shrink-0" />
@@ -108,12 +108,12 @@ const Editor = () => {
                         <span className="truncate max-w-[150px]">{parent.title}</span>
                       </Button>
                       {index < parentChain.length - 1 && (
-                        <ArrowRight className="h-3 w-3 mx-1 text-blue-300 flex-shrink-0" />
+                        <ArrowRight className="h-3 w-3 mx-1 text-muted-foreground flex-shrink-0" />
                       )}
                     </div>
                   ))}
-                  <span className="mx-1 text-blue-300">/</span>
-                  <span className="text-sm font-medium text-blue-800 truncate max-w-[200px]">
+                  <span className="mx-1 text-muted-foreground">/</span>
+                  <span className="text-sm font-medium text-foreground truncate max-w-[200px]">
                     {note?.title}
                   </span>
                 </>
@@ -125,26 +125,26 @@ const Editor = () => {
             {note?.isNotebook && childNotes.length > 0 ? (
               <div className="container max-w-6xl">
                 <div className="flex items-center mb-6">
-                  <Book className="text-blue-700 h-6 w-6 mr-2 flex-shrink-0" />
-                  <h1 className="text-2xl font-bold text-blue-900 truncate">{note.title}</h1>
+                  <Book className="text-primary h-6 w-6 mr-2 flex-shrink-0" />
+                  <h1 className="text-2xl font-bold text-foreground truncate">{note.title}</h1>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {childNotes.map((childNote) => (
                     <div 
                       key={childNote.id} 
-                      className="bg-white rounded-lg shadow-md border border-blue-100 p-4 cursor-pointer hover:shadow-lg transition-all"
+                      className="bg-card rounded-lg shadow-md border border-border p-4 cursor-pointer hover:shadow-lg transition-all"
                       onClick={() => navigate(`/editor/${childNote.id}`)}
                     >
                       <div className="flex items-center mb-2">
                         {childNote.isNotebook ? (
-                          <Book className="h-4 w-4 text-blue-600 mr-2 flex-shrink-0" />
+                          <Book className="h-4 w-4 text-primary mr-2 flex-shrink-0" />
                         ) : (
-                          <FileText className="h-4 w-4 text-blue-600 mr-2 flex-shrink-0" />
+                          <FileText className="h-4 w-4 text-primary mr-2 flex-shrink-0" />
                         )}
-                        <h3 className="font-medium text-blue-800 truncate">{childNote.title}</h3>
+                        <h3 className="font-medium text-foreground truncate">{childNote.title}</h3>
                       </div>
-                      <p className="text-sm text-blue-700 line-clamp-2">
+                      <p className="text-sm text-muted-foreground line-clamp-2">
                         {childNote.content 
                           ? childNote.content.substring(0, 100) + (childNote.content.length > 100 ? "..." : "")
                           : childNote.isNotebook ? "Notebook" : "No content"}
@@ -155,7 +155,7 @@ const Editor = () => {
               </div>
             ) : (
               <div className="container max-w-5xl mx-auto">
-                <div className="notebook-editor-container rounded-lg overflow-hidden shadow-lg border border-blue-200 bg-white">
+                <div className="notebook-editor-container rounded-lg overflow-hidden shadow-lg border border-border bg-card">
                   <NoteEditor />
                 </div>
               </div>

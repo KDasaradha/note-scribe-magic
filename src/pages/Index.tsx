@@ -4,9 +4,12 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/use-theme";
+import { Sun, Moon } from "lucide-react";
 
 const Index = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,10 +19,22 @@ const Index = () => {
   }, [isAuthenticated, isLoading, navigate]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col">
-      <header className="border-b h-16">
+    <div className="min-h-screen w-full flex flex-col bg-background text-foreground">
+      <header className="border-b h-16 border-border">
         <div className="container h-full flex items-center justify-between">
           <h1 className="font-semibold text-xl">Notes</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
         </div>
       </header>
 
@@ -45,8 +60,8 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="glass-card rounded-xl border shadow-md w-full max-w-md overflow-hidden">
-            <div className="border-b bg-secondary/50 p-3">
+          <div className="glass-card rounded-xl border shadow-md w-full max-w-md overflow-hidden bg-card">
+            <div className="border-b bg-muted p-3">
               <div className="flex space-x-1">
                 <div className="h-3 w-3 rounded-full bg-red-500"></div>
                 <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
@@ -85,7 +100,7 @@ const Index = () => {
         </div>
       </main>
 
-      <footer className="border-t py-8">
+      <footer className="border-t py-8 border-border">
         <div className="container text-center text-sm text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} Notes App. All rights reserved.</p>
         </div>
