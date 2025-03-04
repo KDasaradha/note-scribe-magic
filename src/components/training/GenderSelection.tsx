@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { TrainingSettings } from "@/types";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Male, Female } from "lucide-react";
+import { User, UserCircle2 } from "lucide-react";
 
 interface GenderSelectionProps {
   onSelect: (settings: TrainingSettings) => void;
@@ -50,7 +50,7 @@ export function GenderSelection({ onSelect }: GenderSelectionProps) {
                 htmlFor="male"
                 className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-card p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
               >
-                <Male className="mb-3 h-6 w-6" />
+                <User className="mb-3 h-6 w-6" />
                 <span className="text-sm font-medium">Male</span>
               </Label>
             </div>
@@ -64,7 +64,7 @@ export function GenderSelection({ onSelect }: GenderSelectionProps) {
                 htmlFor="female"
                 className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-card p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
               >
-                <Female className="mb-3 h-6 w-6" />
+                <UserCircle2 className="mb-3 h-6 w-6" />
                 <span className="text-sm font-medium">Female</span>
               </Label>
             </div>
