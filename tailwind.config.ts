@@ -114,7 +114,9 @@ export default {
 				'slide-down': 'slide-down 0.3s ease-out'
 			},
 			fontFamily: {
-				sans: ['Inter', 'sans-serif']
+				sans: ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
+				heading: ['Inter', 'Poppins', 'system-ui', 'sans-serif'],
+				mono: ['SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
 			},
 			screens: {
 				'xs': '480px',
