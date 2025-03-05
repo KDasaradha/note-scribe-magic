@@ -65,11 +65,11 @@
 }
 
 .prose-custom h1 {
-  @apply text-3xl font-bold mt-6 mb-4 text-foreground;
+  @apply text-3xl font-bold mt-6 mb-4 text-foreground pb-2 border-b border-border;
 }
 
 .prose-custom h2 {
-  @apply text-2xl font-bold mt-5 mb-3 text-foreground;
+  @apply text-2xl font-bold mt-5 mb-3 text-foreground pb-1;
 }
 
 .prose-custom h3 {
@@ -105,7 +105,7 @@
 }
 
 .prose-custom blockquote {
-  @apply border-l-4 border-muted pl-4 italic my-4 text-foreground/80;
+  @apply border-l-4 border-muted pl-4 italic my-4 text-foreground/80 bg-muted/20 p-3 rounded-r;
 }
 
 .prose-custom a {
@@ -113,7 +113,7 @@
 }
 
 .prose-custom img {
-  @apply max-w-full h-auto rounded-md my-4;
+  @apply max-w-full h-auto rounded-md my-4 border border-border;
 }
 
 .prose-custom pre {
@@ -130,7 +130,7 @@
 
 /* Table styles */
 .prose-custom table {
-  @apply w-full border-collapse my-4;
+  @apply w-full border-collapse my-4 bg-card rounded-md overflow-hidden;
 }
 
 .prose-custom table th {
@@ -149,12 +149,81 @@
   @apply bg-muted/30;
 }
 
-/* Task list */
-.prose-custom ul li input[type="checkbox"] {
-  @apply mr-2;
+/* Notion-like features */
+.prose-custom table tr:hover {
+  @apply bg-muted/50;
 }
 
-/* Group hover for block controls */
+/* Task list with Notion-like toggles */
+.prose-custom ul li input[type="checkbox"] {
+  @apply mr-2 rounded border-muted-foreground focus:ring-primary h-4 w-4 text-primary bg-background;
+}
+
+/* Notion-like callout */
+.notion-callout {
+  @apply bg-muted/30 p-4 rounded-md flex items-start gap-3 my-4 border border-border;
+}
+
+.notion-callout-icon {
+  @apply text-primary flex-shrink-0;
+}
+
+.notion-callout-content {
+  @apply flex-1;
+}
+
+/* Divider styles */
+.prose-custom hr {
+  @apply border-t border-border my-6;
+}
+
+/* Block hover controls */
 .group:hover .group-hover\:opacity-100 {
   @apply opacity-100;
+}
+
+.block-handle {
+  @apply absolute -left-10 top-1/2 transform -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-70 hover:opacity-100 cursor-move;
+}
+
+.block-controls {
+  @apply absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100;
+}
+
+/* Notion-like current line highlight */
+.notion-current-line {
+  @apply bg-primary/5 -mx-4 px-4;
+}
+
+/* Math blocks */
+.prose-custom .math-block {
+  @apply my-4 py-2 px-4 overflow-x-auto text-center;
+}
+
+/* Notion-like page title */
+.notion-page-title {
+  @apply text-4xl font-bold mb-6 pb-2 border-b border-border w-full focus:outline-none;
+}
+
+/* Notion-like block hover */
+.notion-block {
+  @apply relative group py-1 transition-colors;
+}
+.notion-block:hover {
+  @apply bg-muted/20;
+}
+
+/* Drag handle for blocks */
+.drag-handle {
+  @apply w-6 h-6 absolute -left-7 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-move flex items-center justify-center text-muted-foreground;
+}
+
+/* Drop indicator for drag and drop */
+.drop-indicator {
+  @apply h-0.5 w-full bg-primary my-1 rounded-full;
+}
+
+/* Highlight for selected blocks */
+.selected-block {
+  @apply bg-primary/10;
 }
