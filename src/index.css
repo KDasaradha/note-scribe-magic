@@ -1,89 +1,52 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+ 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 224 71.4% 4.1%;
-
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-
-    --primary: 262 83.3% 57.8%;
-    --primary-foreground: 210 20% 98%;
-
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-
-    --accent: 262 83.3% 97.9%;
-    --accent-foreground: 262 83.3% 28.8%;
-
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 262 83.3% 57.8%;
-
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
-
-    --sidebar-background: 224 71.4% 4.1%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 262 83.3% 57.8%;
-    --sidebar-primary-foreground: 210 20% 98%;
-    --sidebar-accent: 224 71.4% 8%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 224 71.4% 12%;
-    --sidebar-ring: 262 83.3% 57.8%;
   }
 
   .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-
-    --card: 224 71.4% 8%;
-    --card-foreground: 210 20% 98%;
-
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-
-    --primary: 262 83.3% 57.8%;
-    --primary-foreground: 210 20% 98%;
-
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 263.4 70% 50.4%;
-
-    --sidebar-background: 224 71.4% 4.1%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 262 83.3% 57.8%;
-    --sidebar-primary-foreground: 210 20% 98%;
-    --sidebar-accent: 215 27.9% 16.9%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 215 27.9% 20%;
-    --sidebar-ring: 263.4 70% 50.4%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
   }
 }
 
@@ -91,181 +54,107 @@
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground;
   }
 }
 
-@layer components {
-  .glass-card {
-    @apply bg-card/90 backdrop-blur-sm border border-border shadow-md rounded-lg;
-  }
-  
-  .markdown-content {
-    @apply max-w-none;
-  }
+/* Custom styles for rendered markdown */
+.prose-custom {
+  @apply text-foreground;
+}
 
-  .markdown-content h1, 
-  .markdown-content h2, 
-  .markdown-content h3, 
-  .markdown-content h4 {
-    @apply font-semibold text-foreground scroll-m-20;
-  }
+.prose-custom h1 {
+  @apply text-3xl font-bold mt-6 mb-4 text-foreground;
+}
 
-  .markdown-content h1 {
-    @apply text-3xl lg:text-4xl mb-6 mt-2;
-  }
+.prose-custom h2 {
+  @apply text-2xl font-bold mt-5 mb-3 text-foreground;
+}
 
-  .markdown-content h2 {
-    @apply text-2xl lg:text-3xl mb-4 mt-8;
-  }
+.prose-custom h3 {
+  @apply text-xl font-bold mt-4 mb-2 text-foreground;
+}
 
-  .markdown-content h3 {
-    @apply text-xl lg:text-2xl mb-3 mt-6;
-  }
+.prose-custom h4 {
+  @apply text-lg font-bold mt-3 mb-2 text-foreground;
+}
 
-  .markdown-content h4 {
-    @apply text-lg lg:text-xl mb-2 mt-4;
-  }
+.prose-custom h5 {
+  @apply text-base font-bold mt-3 mb-1 text-foreground;
+}
 
-  .markdown-content p {
-    @apply leading-7 mb-4;
-  }
+.prose-custom h6 {
+  @apply text-sm font-bold mt-3 mb-1 text-foreground;
+}
 
-  .markdown-content a {
-    @apply text-primary hover:text-primary/80 underline underline-offset-4 transition-colors;
-  }
+.prose-custom p {
+  @apply my-3 text-base leading-7 text-foreground;
+}
 
-  .markdown-content blockquote {
-    @apply border-l-4 border-primary/20 pl-4 italic text-muted-foreground my-4;
-  }
+.prose-custom ul {
+  @apply list-disc pl-6 my-3 text-foreground;
+}
 
-  .markdown-content code {
-    @apply bg-muted px-1.5 py-0.5 rounded text-foreground font-mono text-sm;
-  }
+.prose-custom ol {
+  @apply list-decimal pl-6 my-3 text-foreground;
+}
 
-  .markdown-content pre {
-    @apply bg-muted p-4 rounded-lg overflow-x-auto my-4;
-  }
+.prose-custom li {
+  @apply my-1 text-foreground;
+}
 
-  .markdown-content pre code {
-    @apply bg-transparent p-0 text-sm;
-  }
+.prose-custom blockquote {
+  @apply border-l-4 border-muted pl-4 italic my-4 text-foreground/80;
+}
 
-  .markdown-content ul {
-    @apply list-disc pl-6 mb-4 space-y-2;
-  }
+.prose-custom a {
+  @apply text-primary underline hover:text-primary/80 transition-colors;
+}
 
-  .markdown-content ol {
-    @apply list-decimal pl-6 mb-4 space-y-2;
-  }
+.prose-custom img {
+  @apply max-w-full h-auto rounded-md my-4;
+}
 
-  .markdown-content img {
-    @apply rounded-lg max-w-full my-4 border border-border;
-  }
+.prose-custom pre {
+  @apply bg-secondary text-secondary-foreground p-4 rounded-md overflow-x-auto my-4;
+}
 
-  .markdown-content hr {
-    @apply border-border my-6;
-  }
+.prose-custom code {
+  @apply bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded text-sm;
+}
 
-  .markdown-content table {
-    @apply w-full border-collapse my-4;
-  }
+.prose-custom pre code {
+  @apply bg-transparent p-0 text-sm;
+}
 
-  .markdown-content th {
-    @apply bg-muted px-4 py-2 text-left font-medium;
-  }
+/* Table styles */
+.prose-custom table {
+  @apply w-full border-collapse my-4;
+}
 
-  .markdown-content td {
-    @apply border-t border-border px-4 py-2;
-  }
+.prose-custom table th {
+  @apply bg-secondary text-secondary-foreground font-semibold text-sm p-2 border border-border text-left;
+}
 
-  /* Notebook Paper Styling */
-  .notebook-paper {
-    @apply bg-blue-50 border-blue-100 dark:bg-blue-950 dark:border-blue-900;
-    background-image: linear-gradient(#e1ebf2 1px, transparent 1px);
-    background-size: 100% 1.5rem;
-  }
+.prose-custom table td {
+  @apply p-2 border border-border text-sm;
+}
 
-  .dark .notebook-paper {
-    background-image: linear-gradient(rgba(25, 35, 60, 0.5) 1px, transparent 1px);
-  }
+.prose-custom table tr {
+  @apply border-b border-border;
+}
 
-  .notebook-text {
-    @apply font-medium text-blue-900/80 dark:text-blue-100/80 leading-6;
-    padding-top: 3px; /* Align with the lines */
-  }
+.prose-custom table tr:nth-child(even) {
+  @apply bg-muted/30;
+}
 
-  .notebook-holes {
-    @apply absolute left-[12px] top-0 bottom-0 flex flex-col justify-evenly items-center z-10 pointer-events-none;
-  }
+/* Task list */
+.prose-custom ul li input[type="checkbox"] {
+  @apply mr-2;
+}
 
-  .notebook-hole {
-    @apply bg-blue-50 border border-blue-200 rounded-full w-[10px] h-[10px] shadow-inner dark:bg-blue-900 dark:border-blue-800;
-  }
-
-  /* Notebook Cover styling */
-  .notebook-cover {
-    @apply relative shadow-md border-0;
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    box-shadow: 
-      0 2px 4px rgba(0,0,0,0.1),
-      2px 4px 0 -2px #93c5fd,
-      2px 6px 0 -3px #3b82f6;
-  }
-
-  .dark .notebook-cover {
-    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-    box-shadow: 
-      0 2px 4px rgba(0,0,0,0.3),
-      2px 4px 0 -2px #1e3a8a,
-      2px 6px 0 -3px #1d4ed8;
-  }
-
-  .notebook-cover::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 10px;
-    background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
-    border-top-left-radius: 0.5rem;
-    border-top-right-radius: 0.5rem;
-  }
-
-  .dark .notebook-cover::before {
-    background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
-  }
-
-  /* Keep existing editor-transition code */
-  .editor-transition {
-    @apply transition-all duration-200 ease-in-out;
-  }
-
-  .fade-in {
-    @apply animate-fade-in;
-  }
-
-  .slide-up {
-    @apply animate-slide-up;
-  }
-
-  .icon-spin {
-    animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .note-card {
-    @apply transition-all duration-200 ease-in-out hover:shadow-lg hover:translate-y-[-2px] hover:border-primary/20;
-  }
+/* Group hover for block controls */
+.group:hover .group-hover\:opacity-100 {
+  @apply opacity-100;
 }

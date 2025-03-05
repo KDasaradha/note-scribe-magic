@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useNotes } from "@/hooks/use-notes";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ChevronLeft, Loader2, Save, Trash, Bold, Italic, List, ListOrdered, 
   Heading1, Heading2, Link, Image, Code, Quote, HelpCircle, FileDown, BookOpen,
-  CheckSquare, Table, Plus, ArrowDown, ArrowRight, Edit
+  CheckSquare, Table, Plus, ArrowDown, ArrowRight, Edit, Clock
 } from "lucide-react";
 import { 
   AlertDialog,
@@ -39,6 +40,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { NoteContextMenu } from "./NoteContextMenu";
+import { format } from "date-fns";
+
+// Auto-save interval in milliseconds
+const AUTO_SAVE_INTERVAL = 5000;
 
 export function NoteEditor() {
   const { noteId } = useParams();
@@ -54,6 +60,8 @@ export function NoteEditor() {
   const [showMarkdownGuide, setShowMarkdownGuide] = useState(false);
   const [isCreatingSubpage, setIsCreatingSubpage] = useState(false);
   const [newSubpageTitle, setNewSubpageTitle] = useState("");
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const titleInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -67,6 +75,7 @@ export function NoteEditor() {
       if (existingNote) {
         setTitle(existingNote.title);
         setContent(existingNote.content);
+        setLastSaved(new Date(existingNote.updatedAt));
       } else {
         toast.error("Note not found");
         navigate("/dashboard");
@@ -106,6 +115,37 @@ export function NoteEditor() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [hasUnsavedChanges]);
+
+  // Setup auto-save
+  useEffect(() => {
+    if (hasUnsavedChanges && !isNewNote && noteId) {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+
+      autoSaveTimerRef.current = setTimeout(() => {
+        handleAutoSave();
+      }, AUTO_SAVE_INTERVAL);
+    }
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [content, title, hasUnsavedChanges]);
+  
+  const handleAutoSave = async () => {
+    if (!hasUnsavedChanges || isNewNote || !noteId) return;
+    
+    try {
+      const updatedNote = await updateNote(noteId, title, content);
+      setLastSaved(new Date(updatedNote.updatedAt));
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+    }
+  };
   
   const handleSave = async () => {
     if (!title.trim()) {
@@ -121,9 +161,11 @@ export function NoteEditor() {
         const newNote = await createNote(title, content);
         navigate(`/editor/${newNote.id}`, { replace: true });
         setHasUnsavedChanges(false);
+        setLastSaved(new Date(newNote.updatedAt));
       } else if (noteId) {
-        await updateNote(noteId, title, content);
+        const updatedNote = await updateNote(noteId, title, content);
         setHasUnsavedChanges(false);
+        setLastSaved(new Date(updatedNote.updatedAt));
       }
     } catch (error) {
       console.error("Failed to save note:", error);
@@ -276,11 +318,18 @@ export function NoteEditor() {
       case 'quote':
         newText = beforeText + `\n> ${selectedText || 'Blockquote'}\n` + afterText;
         break;
+      case 'checklist':
+        newText = beforeText + `\n- [ ] ${selectedText || 'Task'}\n` + afterText;
+        break;
+      case 'table':
+        newText = beforeText + `\n| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n` + afterText;
+        break;
       default:
         newText = content;
     }
 
     setContent(newText);
+    setHasUnsavedChanges(true);
     
     setTimeout(() => {
       textarea.focus();
@@ -314,6 +363,41 @@ export function NoteEditor() {
     exportMarkdownToFile(content, title || "untitled-note");
     toast.success("Markdown file downloaded");
   };
+
+  const handleContextMenuInsert = useCallback((type: string) => {
+    insertMarkdown(type);
+  }, []);
+
+  const handleCopySelection = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const selectedText = content.substring(textarea.selectionStart, textarea.selectionEnd);
+    if (selectedText) {
+      navigator.clipboard.writeText(selectedText);
+      toast.success("Copied to clipboard");
+    }
+  }, [content]);
+
+  const handleDeleteSelection = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    
+    if (start !== end) {
+      const newText = content.substring(0, start) + content.substring(end);
+      setContent(newText);
+      setHasUnsavedChanges(true);
+      
+      setTimeout(() => {
+        textarea.focus();
+        textarea.selectionStart = start;
+        textarea.selectionEnd = start;
+      }, 0);
+    }
+  }, [content]);
   
   if (isLoading && !isNewNote) {
     return (
@@ -324,26 +408,27 @@ export function NoteEditor() {
   }
   
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
+    <div className="h-full flex flex-col">
       <div className="border-b">
         <div className="container py-3 flex items-center justify-between">
           <div className="flex items-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/dashboard")}
-              className="mr-2"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            
             <Input
               ref={titleInputRef}
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setHasUnsavedChanges(true);
+              }}
               placeholder="Untitled Note"
               className="border-none shadow-none text-xl font-medium placeholder:text-muted-foreground/50 max-w-[280px] md:max-w-md"
             />
+
+            {lastSaved && (
+              <div className="ml-4 flex items-center text-xs text-muted-foreground">
+                <Clock className="h-3 w-3 mr-1" />
+                {hasUnsavedChanges ? "Unsaved changes" : `Last saved ${format(lastSaved, 'h:mm a')}`}
+              </div>
+            )}
           </div>
           
           <div className="flex items-center gap-2">
@@ -594,13 +679,22 @@ export function NoteEditor() {
         <div className="flex-1 overflow-auto">
           <div className="container py-4">
             <TabsContent value="write" className="mt-0 h-full">
-              <Textarea
-                ref={textareaRef}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Start writing your note here... (Markdown supported)"
-                className="min-h-[calc(100vh-12rem)] resize-none border-none shadow-none focus-visible:ring-0 p-0 font-mono text-sm"
-              />
+              <NoteContextMenu 
+                onInsertMarkdown={handleContextMenuInsert}
+                onCopySelection={handleCopySelection}
+                onDeleteSelection={handleDeleteSelection}
+              >
+                <Textarea
+                  ref={textareaRef}
+                  value={content}
+                  onChange={(e) => {
+                    setContent(e.target.value);
+                    setHasUnsavedChanges(true);
+                  }}
+                  placeholder="Start writing your note here... (Markdown supported, right-click for more options)"
+                  className="min-h-[calc(100vh-12rem)] resize-none border-none shadow-none focus-visible:ring-0 p-0 font-mono text-sm"
+                />
+              </NoteContextMenu>
             </TabsContent>
             
             <TabsContent value="preview" className="mt-0 h-full">
