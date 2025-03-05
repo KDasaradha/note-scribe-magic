@@ -1,6 +1,6 @@
 
 import { useState, useRef } from "react";
-import { ContentBlock } from "@/types";
+import { ContentBlock, ImageBlock } from "@/types";
 import { BlockHandle } from "./BlockHandle";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -112,16 +112,17 @@ export function NotionBlock({
       );
     } else if (block.type === 'image' && 'url' in block.content) {
       // Image block
+      const imageContent = block.content as ImageBlock;
       return (
         <figure>
           <img 
-            src={block.content.url} 
-            alt={block.content.caption || 'Image'} 
+            src={imageContent.url} 
+            alt={imageContent.caption || 'Image'} 
             className="max-w-full h-auto rounded-md" 
           />
-          {block.content.caption && (
+          {imageContent.caption && (
             <figcaption className="text-center text-sm text-muted-foreground mt-2">
-              {block.content.caption}
+              {imageContent.caption}
             </figcaption>
           )}
         </figure>
@@ -132,7 +133,7 @@ export function NotionBlock({
     return <div>Unsupported block type</div>;
   };
   
-  const blockClassName = `notion-block relative group p-2 rounded-md my-1 ${
+  const blockClassName = `notion-block p-2 rounded-md my-1 ${
     isSelected ? 'bg-muted' : isHovered ? 'bg-muted/40' : ''
   }`;
   

@@ -207,15 +207,36 @@
 
 /* Notion-like block hover */
 .notion-block {
-  @apply relative group py-1 transition-colors;
+  position: relative;
+  padding-top: 0.25rem; /* py-1 */
+  padding-bottom: 0.25rem; /* py-1 */
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
+
+/* Add the group class separately */
+.notion-block {
+  @apply relative py-1 transition-colors;
+}
+
+.notion-block {
+  /* This makes it a group parent */
+  position: relative;
+}
+
 .notion-block:hover {
   @apply bg-muted/20;
 }
 
 /* Drag handle for blocks */
 .drag-handle {
-  @apply w-6 h-6 absolute -left-7 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-move flex items-center justify-center text-muted-foreground;
+  @apply w-6 h-6 absolute -left-7 top-1/2 transform -translate-y-1/2 opacity-0 cursor-move flex items-center justify-center text-muted-foreground;
+}
+
+/* Show drag handle on hover */
+.notion-block:hover .drag-handle {
+  opacity: 1;
 }
 
 /* Drop indicator for drag and drop */
