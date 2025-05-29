@@ -436,7 +436,7 @@ export function AppSidebar() {
             <>
               <div className="font-medium text-lg flex items-center">
                 <PanelRight className="h-5 w-5 mr-2 text-primary" />
-                NotionLike
+                NotesScrib
               </div>
               <div className="flex gap-1">
                 <Button
