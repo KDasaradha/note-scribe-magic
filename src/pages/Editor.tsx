@@ -9,6 +9,8 @@ import { AppSidebar } from "@/components/layout/Sidebar";
 import { Book, ChevronLeft, FileText, ArrowRight, PlusCircle, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNotes } from "@/hooks/use-notes";
+import { useNoteHierarchy } from "@/hooks/use-note-hierarchy";
+import { useNoteOperations } from "@/hooks/use-note-operations";
 import { Note } from "@/types";
 import {
   DropdownMenu,
@@ -24,13 +26,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const Editor = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { noteId } = useParams();
-  const { getNote, getChildNotes, createNote, moveNote, deleteNote, isLoading: notesLoading, getNoteHierarchy } = useNotes();
+  const { getNote, isLoading: notesLoading } = useNotes();
+  const { buildParentChain, getChildNotes } = useNoteHierarchy();
+  const { handleCreateNote, handleDuplicateNote, handleDeleteNote, handleMoveNote } = useNoteOperations();
   const navigate = useNavigate();
   const [note, setNote] = useState<Note | undefined>(undefined);
   const [childNotes, setChildNotes] = useState<Note[]>([]);
   const [parentChain, setParentChain] = useState<Note[]>([]);
-  const [newSubpageTitle, setNewSubpageTitle] = useState("");
-  const [isCreatingSubpage, setIsCreatingSubpage] = useState(false);
   const { theme } = useTheme();
 
   // Handle keyboard shortcuts for creating a new note
@@ -59,16 +61,6 @@ const Editor = () => {
         setChildNotes([]);
       }
 
-      // Build the parent chain for breadcrumb navigation
-      const buildParentChain = (note: Note | undefined, chain: Note[] = []): Note[] => {
-        if (!note || !note.parentId) return chain;
-        
-        const parentNote = getNote(note.parentId);
-        if (!parentNote) return chain;
-        
-        return buildParentChain(parentNote, [parentNote, ...chain]);
-      };
-
       if (currentNote && currentNote.parentId) {
         const chain = buildParentChain(currentNote);
         setParentChain(chain);
@@ -76,7 +68,7 @@ const Editor = () => {
         setParentChain([]);
       }
     }
-  }, [noteId, notesLoading, getNote, getChildNotes]);
+  }, [noteId, notesLoading, getNote, getChildNotes, buildParentChain]);
 
   useEffect(() => {
     // Set page title
@@ -96,7 +88,7 @@ const Editor = () => {
     
     try {
       const defaultTitle = `Untitled ${Date.now().toString().slice(-4)}`;
-      const newNote = await createNote(defaultTitle, "", noteId);
+      const newNote = await handleCreateNote(defaultTitle, "", noteId);
       toast.success("New page created");
       navigate(`/editor/${newNote.id}`);
     } catch (error) {
@@ -109,38 +101,26 @@ const Editor = () => {
     switch(action) {
       case 'duplicate':
         try {
-          const targetNote = getNote(targetNoteId);
-          if (targetNote) {
-            const newNote = await createNote(
-              `${targetNote.title} (Copy)`, 
-              targetNote.content, 
-              targetNote.parentId
-            );
-            toast.success("Note duplicated");
-            navigate(`/editor/${newNote.id}`);
-          }
+          await handleDuplicateNote(targetNoteId);
         } catch (error) {
-          toast.error("Failed to duplicate note");
+          console.error("Failed to duplicate note:", error);
         }
         break;
         
       case 'delete':
         try {
-          await deleteNote(targetNoteId);
-          toast.success("Note deleted");
-          navigate("/dashboard");
+          await handleDeleteNote(targetNoteId);
         } catch (error) {
-          toast.error("Failed to delete note");
+          console.error("Failed to delete note:", error);
         }
         break;
 
       case 'moveToRoot':
         try {
-          await moveNote(targetNoteId, null);
-          toast.success("Note moved to root");
+          await handleMoveNote(targetNoteId, null);
           navigate("/dashboard");
         } catch (error) {
-          toast.error("Failed to move note");
+          console.error("Failed to move note:", error);
         }
         break;
         

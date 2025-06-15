@@ -1,5 +1,7 @@
 
 import { useNotes } from "@/hooks/use-notes";
+import { useNoteHierarchy } from "@/hooks/use-note-hierarchy";
+import { useNoteOperations } from "@/hooks/use-note-operations";
 import { NoteCard } from "./NoteCard";
 import { Button } from "@/components/ui/button";
 import { Book, Loader2, Plus, PlusCircle } from "lucide-react";
@@ -18,7 +20,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function NotesList() {
-  const { notes, getRootNotes, getChildNotes, createNote, createNotebook, isLoading } = useNotes();
+  const { notes, isLoading } = useNotes();
+  const { getRootNotes, getChildNotes } = useNoteHierarchy();
+  const { handleCreateNote, handleCreateNotebook } = useNoteOperations();
   const navigate = useNavigate();
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
   const [isCreateNoteOpen, setIsCreateNoteOpen] = useState(false);
@@ -30,11 +34,11 @@ export function NotesList() {
   const notebooks = rootNotes.filter(note => note.isNotebook);
   const standaloneNotes = rootNotes.filter(note => !note.isNotebook);
 
-  const handleCreateNotebook = async () => {
+  const handleCreateNotebookClick = async () => {
     if (!newNotebookTitle.trim()) return;
     
     try {
-      const notebook = await createNotebook(newNotebookTitle);
+      const notebook = await handleCreateNotebook(newNotebookTitle);
       setNewNotebookTitle("");
       setIsCreateNotebookOpen(false);
       navigate(`/editor/${notebook.id}`);
@@ -43,14 +47,14 @@ export function NotesList() {
     }
   };
 
-  const handleCreateNote = async () => {
+  const handleCreateNoteClick = async () => {
     if (!newNoteTitle.trim()) return;
     
     try {
-      const note = await createNote(
+      const note = await handleCreateNote(
         newNoteTitle, 
         "", 
-        selectedNotebook
+        selectedNotebook || undefined
       );
       setNewNoteTitle("");
       setIsCreateNoteOpen(false);
@@ -103,7 +107,7 @@ export function NotesList() {
                 />
               </div>
               <DialogFooter>
-                <Button onClick={handleCreateNotebook}>Create Notebook</Button>
+                <Button onClick={handleCreateNotebookClick}>Create Notebook</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -165,7 +169,7 @@ export function NotesList() {
                 )}
               </div>
               <DialogFooter>
-                <Button onClick={handleCreateNote}>Create Note</Button>
+                <Button onClick={handleCreateNoteClick}>Create Note</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -185,7 +189,28 @@ export function NotesList() {
               New Notebook
             </Button>
           </DialogTrigger>
-          {/* Dialog content is the same as above, omitted for brevity */}
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Notebook</DialogTitle>
+              <DialogDescription>
+                A notebook can contain multiple pages and helps organize your notes.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Label htmlFor="notebook-title">Notebook Title</Label>
+              <Input 
+                id="notebook-title" 
+                value={newNotebookTitle}
+                onChange={(e) => setNewNotebookTitle(e.target.value)}
+                placeholder="My Notebook"
+                className="mt-2"
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button onClick={handleCreateNotebookClick}>Create Notebook</Button>
+            </DialogFooter>
+          </DialogContent>
         </Dialog>
       </div>
 
@@ -252,7 +277,59 @@ export function NotesList() {
                   New Note
                 </Button>
               </DialogTrigger>
-              {/* Dialog content is the same as above, omitted for brevity */}
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Note</DialogTitle>
+                  <DialogDescription>
+                    Create a standalone note or add it to an existing notebook.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                  <div>
+                    <Label htmlFor="note-title">Note Title</Label>
+                    <Input 
+                      id="note-title" 
+                      value={newNoteTitle}
+                      onChange={(e) => setNewNoteTitle(e.target.value)}
+                      placeholder="My Note"
+                      className="mt-2"
+                      autoFocus
+                    />
+                  </div>
+                  
+                  {notebooks.length > 0 && (
+                    <div>
+                      <Label>Add to Notebook (Optional)</Label>
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        <Button 
+                          type="button"
+                          variant={selectedNotebook === null ? "default" : "outline"}
+                          className="justify-start"
+                          onClick={() => setSelectedNotebook(null)}
+                        >
+                          Standalone Note
+                        </Button>
+                        
+                        {notebooks.map(notebook => (
+                          <Button
+                            key={notebook.id}
+                            type="button"
+                            variant={selectedNotebook === notebook.id ? "default" : "outline"}
+                            className="justify-start"
+                            onClick={() => setSelectedNotebook(notebook.id)}
+                          >
+                            <Book className="mr-2 h-4 w-4" />
+                            {notebook.title}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button onClick={handleCreateNoteClick}>Create Note</Button>
+                </DialogFooter>
+              </DialogContent>
             </Dialog>
           </div>
           

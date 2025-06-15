@@ -1,7 +1,10 @@
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, KeyboardEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useNotes } from "@/hooks/use-notes";
+import { useAutoSave } from "@/hooks/use-auto-save";
+import { useMarkdownEditor } from "@/hooks/use-markdown-editor";
+import { useNoteOperations } from "@/hooks/use-note-operations";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -25,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
-import { exportMarkdownToFile, markdownGuide } from "@/utils/markdownUtils";
+import { markdownGuide } from "@/utils/markdownUtils";
 import {
   Dialog,
   DialogContent,
@@ -43,30 +46,55 @@ import {
 import { NoteContextMenu } from "./NoteContextMenu";
 import { format } from "date-fns";
 
-// Auto-save interval in milliseconds
-const AUTO_SAVE_INTERVAL = 5000;
-
 export function NoteEditor() {
   const { noteId } = useParams();
-  const { getNote, createNote, updateNote, deleteNote, createNotebook, isLoading } = useNotes();
+  const { getNote, isLoading } = useNotes();
   const navigate = useNavigate();
   
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [activeTab, setActiveTab] = useState("write");
   const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [showMarkdownGuide, setShowMarkdownGuide] = useState(false);
-  const [isCreatingSubpage, setIsCreatingSubpage] = useState(false);
   const [newSubpageTitle, setNewSubpageTitle] = useState("");
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
   const isNewNote = noteId === "new";
+  
+  // Use custom hooks
+  const { handleCreateNote, handleUpdateNote, handleDeleteNote, isDeleting } = useNoteOperations();
+  const { lastSaved, hasUnsavedChanges, setHasUnsavedChanges, setLastSaved } = useAutoSave({
+    noteId,
+    title,
+    content,
+    isNewNote,
+  });
+  
+  const {
+    textareaRef,
+    insertMarkdown,
+    insertTableTemplate,
+    insertChecklist,
+    loadSampleMarkdown,
+    exportToFile,
+    handleCopySelection,
+    handleDeleteSelection,
+  } = useMarkdownEditor({
+    content,
+    setContent,
+    title,
+    setTitle,
+    hasUnsavedChanges,
+    setHasUnsavedChanges,
+  });
+
+  // Handle keyboard shortcuts for creating a new note
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    // Command/Ctrl + N to create a new note
+    if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+      e.preventDefault();
+      navigate('/editor/new');
+    }
+  };
   
   useEffect(() => {
     if (!isNewNote && noteId) {
@@ -88,64 +116,14 @@ export function NoteEditor() {
   }, [noteId, getNote, navigate, isNewNote]);
   
   useEffect(() => {
-    if (isNewNote) {
-      setHasUnsavedChanges(title.trim() !== "" || content.trim() !== "");
-    } else if (noteId) {
-      const existingNote = getNote(noteId);
-      if (existingNote) {
-        setHasUnsavedChanges(
-          title !== existingNote.title || content !== existingNote.content
-        );
-      }
-    }
-  }, [title, content, isNewNote, noteId, getNote]);
-  
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = "";
-        return "";
-      }
-    };
-    
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    // Set page title
+    const noteTitle = title || "Note";
+    document.title = `${noteTitle} - Notes App`;
     
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.title = "Notes App";
     };
-  }, [hasUnsavedChanges]);
-
-  // Setup auto-save
-  useEffect(() => {
-    if (hasUnsavedChanges && !isNewNote && noteId) {
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
-      }
-
-      autoSaveTimerRef.current = setTimeout(() => {
-        handleAutoSave();
-      }, AUTO_SAVE_INTERVAL);
-    }
-
-    return () => {
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
-      }
-    };
-  }, [content, title, hasUnsavedChanges]);
-  
-  const handleAutoSave = async () => {
-    if (!hasUnsavedChanges || isNewNote || !noteId) return;
-    
-    try {
-      const updatedNote = await updateNote(noteId, title, content);
-      setLastSaved(new Date(updatedNote.updatedAt));
-      setHasUnsavedChanges(false);
-    } catch (error) {
-      console.error("Auto-save failed:", error);
-    }
-  };
+  }, [title]);
   
   const handleSave = async () => {
     if (!title.trim()) {
@@ -158,12 +136,12 @@ export function NoteEditor() {
     
     try {
       if (isNewNote) {
-        const newNote = await createNote(title, content);
+        const newNote = await handleCreateNote(title, content);
         navigate(`/editor/${newNote.id}`, { replace: true });
         setHasUnsavedChanges(false);
         setLastSaved(new Date(newNote.updatedAt));
       } else if (noteId) {
-        const updatedNote = await updateNote(noteId, title, content);
+        const updatedNote = await handleUpdateNote(noteId, title, content);
         setHasUnsavedChanges(false);
         setLastSaved(new Date(updatedNote.updatedAt));
       }
@@ -171,21 +149,6 @@ export function NoteEditor() {
       console.error("Failed to save note:", error);
     } finally {
       setIsSaving(false);
-    }
-  };
-  
-  const handleDelete = async () => {
-    if (!noteId || isNewNote) return;
-    
-    setIsDeleting(true);
-    
-    try {
-      await deleteNote(noteId);
-      navigate("/dashboard", { replace: true });
-    } catch (error) {
-      console.error("Failed to delete note:", error);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -201,203 +164,15 @@ export function NoteEditor() {
     }
     
     try {
-      const note = getNote(noteId);
-      
-      if (note?.isNotebook) {
-        const newNote = await createNote(newSubpageTitle, "", noteId);
-        toast.success("Subpage created successfully");
-        navigate(`/editor/${newNote.id}`);
-      } else {
-        const updatedNote = await updateNote(noteId, title, content);
-        const updatedNoteWithNotebook = { ...updatedNote, isNotebook: true };
-        const newNote = await createNote(newSubpageTitle, "", noteId);
-        toast.success("Subpage created successfully");
-        navigate(`/editor/${newNote.id}`);
-      }
-      
+      const newNote = await handleCreateNote(newSubpageTitle, "", noteId);
+      toast.success("Subpage created successfully");
+      navigate(`/editor/${newNote.id}`);
       setNewSubpageTitle("");
-      setIsCreatingSubpage(false);
     } catch (error) {
       console.error("Failed to create subpage:", error);
       toast.error("Failed to create subpage");
     }
   };
-
-  const insertTableTemplate = () => {
-    const tableTemplate = `
-| Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
-| Cell 1   | Cell 2   | Cell 3   |
-| Cell 4   | Cell 5   | Cell 6   |
-`;
-    
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const beforeText = content.substring(0, start);
-    const afterText = content.substring(start);
-    
-    setContent(beforeText + tableTemplate + afterText);
-    
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + tableTemplate.length;
-      textarea.selectionStart = newCursorPos;
-      textarea.selectionEnd = newCursorPos;
-    }, 0);
-  };
-
-  const insertChecklist = () => {
-    const checklistTemplate = `
-- [ ] Task 1
-- [ ] Task 2
-- [ ] Task 3
-`;
-    
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const beforeText = content.substring(0, start);
-    const afterText = content.substring(start);
-    
-    setContent(beforeText + checklistTemplate + afterText);
-    
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + checklistTemplate.length;
-      textarea.selectionStart = newCursorPos;
-      textarea.selectionEnd = newCursorPos;
-    }, 0);
-  };
-
-  const insertMarkdown = (markdown: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    const beforeText = content.substring(0, start);
-    const afterText = content.substring(end);
-
-    let newText = '';
-    
-    switch (markdown) {
-      case 'bold':
-        newText = beforeText + `**${selectedText || 'bold text'}**` + afterText;
-        break;
-      case 'italic':
-        newText = beforeText + `*${selectedText || 'italic text'}*` + afterText;
-        break;
-      case 'heading1':
-        newText = beforeText + `\n# ${selectedText || 'Heading 1'}\n` + afterText;
-        break;
-      case 'heading2':
-        newText = beforeText + `\n## ${selectedText || 'Heading 2'}\n` + afterText;
-        break;
-      case 'heading3':
-        newText = beforeText + `\n### ${selectedText || 'Heading 3'}\n` + afterText;
-        break;
-      case 'list':
-        newText = beforeText + `\n- ${selectedText || 'List item'}\n` + afterText;
-        break;
-      case 'orderedList':
-        newText = beforeText + `\n1. ${selectedText || 'List item'}\n` + afterText;
-        break;
-      case 'link':
-        newText = beforeText + `[${selectedText || 'Link text'}](url)` + afterText;
-        break;
-      case 'image':
-        newText = beforeText + `![${selectedText || 'Alt text'}](image-url)` + afterText;
-        break;
-      case 'code':
-        newText = beforeText + "\n```\n" + (selectedText || 'code here') + "\n```\n" + afterText;
-        break;
-      case 'quote':
-        newText = beforeText + `\n> ${selectedText || 'Blockquote'}\n` + afterText;
-        break;
-      case 'checklist':
-        newText = beforeText + `\n- [ ] ${selectedText || 'Task'}\n` + afterText;
-        break;
-      case 'table':
-        newText = beforeText + `\n| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n` + afterText;
-        break;
-      default:
-        newText = content;
-    }
-
-    setContent(newText);
-    setHasUnsavedChanges(true);
-    
-    setTimeout(() => {
-      textarea.focus();
-      const cursorPos = markdown === 'code' 
-        ? beforeText.length + 5 
-        : beforeText.length + markdown.length + 4;
-      textarea.selectionStart = cursorPos;
-      textarea.selectionEnd = cursorPos;
-    }, 0);
-  };
-  
-  const loadSampleMarkdown = () => {
-    if (content && hasUnsavedChanges) {
-      if (!window.confirm("Loading sample markdown will replace your current content. Continue?")) {
-        return;
-      }
-    }
-    setContent(markdownGuide);
-    setTitle(title || "Markdown Guide");
-    setHasUnsavedChanges(true);
-    setActiveTab("write");
-    toast.success("Sample markdown loaded");
-  };
-
-  const exportToFile = () => {
-    if (!content.trim()) {
-      toast.error("Nothing to export - note is empty");
-      return;
-    }
-    
-    exportMarkdownToFile(content, title || "untitled-note");
-    toast.success("Markdown file downloaded");
-  };
-
-  const handleContextMenuInsert = useCallback((type: string) => {
-    insertMarkdown(type);
-  }, []);
-
-  const handleCopySelection = useCallback(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const selectedText = content.substring(textarea.selectionStart, textarea.selectionEnd);
-    if (selectedText) {
-      navigator.clipboard.writeText(selectedText);
-      toast.success("Copied to clipboard");
-    }
-  }, [content]);
-
-  const handleDeleteSelection = useCallback(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    
-    if (start !== end) {
-      const newText = content.substring(0, start) + content.substring(end);
-      setContent(newText);
-      setHasUnsavedChanges(true);
-      
-      setTimeout(() => {
-        textarea.focus();
-        textarea.selectionStart = start;
-        textarea.selectionEnd = start;
-      }, 0);
-    }
-  }, [content]);
   
   if (isLoading && !isNewNote) {
     return (
@@ -408,7 +183,7 @@ export function NoteEditor() {
   }
   
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col" onKeyDown={handleKeyDown} tabIndex={-1}>
       <div className="border-b">
         <div className="container py-3 flex items-center justify-between">
           <div className="flex items-center">
@@ -523,7 +298,7 @@ export function NoteEditor() {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={handleDelete}
+                    onClick={() => noteId && handleDeleteNote(noteId)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
                     Delete
@@ -680,7 +455,7 @@ export function NoteEditor() {
           <div className="container py-4">
             <TabsContent value="write" className="mt-0 h-full">
               <NoteContextMenu 
-                onInsertMarkdown={handleContextMenuInsert}
+                onInsertMarkdown={insertMarkdown}
                 onCopySelection={handleCopySelection}
                 onDeleteSelection={handleDeleteSelection}
               >
