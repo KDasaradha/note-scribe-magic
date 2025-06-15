@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -23,7 +24,7 @@
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 221 83% 53%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
@@ -97,7 +98,21 @@
   }
   
   .glass-card {
-    @apply backdrop-blur-sm border bg-card/90;
+    @apply backdrop-blur-sm border bg-card/90 shadow-sm;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 
@@ -116,27 +131,27 @@
 }
 
 .prose-custom {
-  @apply text-foreground;
+  @apply text-foreground max-w-none;
 }
 
 .prose-custom h1 {
-  @apply text-2xl sm:text-3xl font-bold mt-6 mb-4 text-foreground pb-2 border-b border-border;
+  @apply text-2xl sm:text-3xl font-bold mt-8 mb-4 text-foreground pb-3 border-b border-border;
 }
 
 .prose-custom h2 {
-  @apply text-xl sm:text-2xl font-bold mt-5 mb-3 text-foreground pb-1;
+  @apply text-xl sm:text-2xl font-bold mt-6 mb-3 text-foreground;
 }
 
 .prose-custom h3 {
-  @apply text-lg sm:text-xl font-bold mt-4 mb-2 text-foreground;
+  @apply text-lg sm:text-xl font-bold mt-5 mb-3 text-foreground;
 }
 
 .prose-custom h4 {
-  @apply text-lg font-bold mt-3 mb-2 text-foreground;
+  @apply text-lg font-bold mt-4 mb-2 text-foreground;
 }
 
 .prose-custom h5 {
-  @apply text-base font-bold mt-3 mb-1 text-foreground;
+  @apply text-base font-bold mt-3 mb-2 text-foreground;
 }
 
 .prose-custom h6 {
@@ -144,155 +159,116 @@
 }
 
 .prose-custom p {
-  @apply my-3 text-base leading-7 text-foreground tracking-wide;
+  @apply my-4 text-base leading-relaxed text-foreground;
 }
 
 .prose-custom ul {
-  @apply list-disc pl-6 my-3 text-foreground;
+  @apply list-disc pl-6 my-4 space-y-2 text-foreground;
 }
 
 .prose-custom ol {
-  @apply list-decimal pl-6 my-3 text-foreground;
+  @apply list-decimal pl-6 my-4 space-y-2 text-foreground;
 }
 
 .prose-custom li {
-  @apply my-1 text-foreground;
+  @apply text-foreground leading-relaxed;
 }
 
 .prose-custom blockquote {
-  @apply border-l-4 border-muted pl-4 italic my-4 text-foreground/80 bg-muted/20 p-3 rounded-r;
+  @apply border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950/20 pl-6 py-4 my-6 italic text-foreground/90 rounded-r-lg;
 }
 
 .prose-custom a {
-  @apply text-primary underline hover:text-primary/80 transition-colors;
+  @apply text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 transition-colors;
 }
 
 .prose-custom img {
-  @apply max-w-full h-auto rounded-md my-4 border border-border;
+  @apply max-w-full h-auto rounded-lg my-6 shadow-sm border border-border;
 }
 
 .prose-custom pre {
-  @apply bg-secondary text-secondary-foreground p-4 rounded-md overflow-x-auto my-4;
+  @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-6 rounded-lg overflow-x-auto my-6 border border-border;
 }
 
 .prose-custom code {
-  @apply bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded text-sm;
+  @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1 rounded text-sm font-mono;
 }
 
 .prose-custom pre code {
-  @apply bg-transparent p-0 text-sm;
+  @apply bg-transparent p-0;
 }
 
 .prose-custom table {
-  @apply w-full border-collapse my-4 bg-card rounded-md overflow-hidden overflow-x-auto max-w-full block sm:table;
+  @apply w-full border-collapse my-6 bg-card rounded-lg overflow-hidden border border-border;
 }
 
 .prose-custom table th {
-  @apply bg-secondary text-secondary-foreground font-semibold text-sm p-2 border border-border text-left;
+  @apply bg-gray-50 dark:bg-gray-800 text-foreground font-semibold p-4 border-b border-border text-left;
 }
 
 .prose-custom table td {
-  @apply p-2 border border-border text-sm;
+  @apply p-4 border-b border-border text-sm;
 }
 
-.prose-custom table tr {
-  @apply border-b border-border;
+.prose-custom table tr:last-child td {
+  @apply border-b-0;
 }
 
 .prose-custom table tr:nth-child(even) {
-  @apply bg-muted/30;
+  @apply bg-gray-50/50 dark:bg-gray-800/50;
 }
 
 .prose-custom table tr:hover {
-  @apply bg-muted/50;
-}
-
-.notion-callout {
-  @apply bg-muted/30 p-4 rounded-md flex flex-col sm:flex-row items-start gap-3 my-4 border border-border;
-}
-
-.notion-callout-icon {
-  @apply text-primary flex-shrink-0;
-}
-
-.notion-callout-content {
-  @apply flex-1 mt-2 sm:mt-0;
+  @apply bg-gray-100/50 dark:bg-gray-700/50;
 }
 
 .prose-custom hr {
-  @apply border-t border-border my-6;
-}
-
-.block-handle {
-  @apply absolute -left-10 top-1/2 transform -translate-y-1/2 opacity-0 transition-opacity hover:opacity-100 cursor-move;
-}
-
-.block-controls {
-  @apply absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 transition-opacity;
-}
-
-.notion-current-line {
-  @apply bg-primary/5 -mx-4 px-4;
-}
-
-.prose-custom .math-block {
-  @apply my-4 py-2 px-4 overflow-x-auto text-center;
+  @apply border-t border-border my-8;
 }
 
 .notion-page-title {
-  @apply text-2xl sm:text-3xl md:text-4xl font-bold mb-6 pb-2 border-b border-border w-full focus:outline-none tracking-tight leading-snug;
+  @apply text-3xl sm:text-4xl font-bold mb-8 pb-4 border-b border-border w-full focus:outline-none tracking-tight leading-tight bg-transparent;
 }
 
 .notion-block {
-  position: relative;
-  padding-top: 0.25rem; /* py-1 */
-  padding-bottom: 0.25rem; /* py-1 */
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-.notion-block {
-  @apply relative py-1 transition-colors;
-}
-
-.notion-block {
-  position: relative;
+  @apply relative py-2 transition-colors rounded-md;
 }
 
 .notion-block:hover {
-  @apply bg-muted/20;
+  @apply bg-gray-50 dark:bg-gray-800/30;
 }
 
 .drag-handle {
-  @apply w-6 h-6 absolute -left-7 top-1/2 transform -translate-y-1/2 opacity-0 cursor-move flex items-center justify-center text-muted-foreground;
+  @apply w-6 h-6 absolute -left-8 top-1/2 transform -translate-y-1/2 opacity-0 cursor-move flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-opacity;
 }
 
 .notion-block:hover .drag-handle {
-  opacity: 1;
+  @apply opacity-100;
+}
+
+.drop-indicator {
+  @apply h-1 w-full bg-blue-500 my-1 rounded-full;
+}
+
+.selected-block {
+  @apply bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800;
+}
+
+.editor-transition {
+  @apply transition-all duration-200 ease-in-out;
 }
 
 @media (max-width: 640px) {
   .drag-handle {
-    @apply -left-5 w-4 h-4;
+    @apply -left-6 w-5 h-5;
   }
   
   .notion-block {
-    @apply pl-4;
+    @apply pl-2;
   }
-}
 
-.drop-indicator {
-  @apply h-0.5 w-full bg-primary my-1 rounded-full;
-}
-
-.selected-block {
-  @apply bg-primary/10;
-}
-
-@media (max-width: 768px) {
   .prose-custom pre {
-    @apply text-sm;
+    @apply text-sm p-4;
   }
   
   .prose-custom code {
@@ -304,55 +280,41 @@
   }
 }
 
-.notebook-paper {
-  @apply relative bg-white dark:bg-slate-900 shadow-md;
-  background-image: linear-gradient(transparent 24px, #e5e7eb 25px);
-  background-size: 100% 25px;
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
 
-.notebook-holes {
-  @apply absolute left-3 top-0 bottom-0 flex flex-col justify-evenly items-center z-10;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.notebook-hole {
-  @apply w-4 h-4 rounded-full bg-background border border-muted-foreground/20;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
 }
 
-.notebook-text {
-  @apply text-foreground;
-  line-height: 25px;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
 }
 
-.notebook-cover {
-  @apply bg-blue-50 dark:bg-blue-950 shadow-lg;
+/* Focus states */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-background;
 }
 
-.editor-transition {
-  @apply transition-all duration-300 ease-in-out;
-}
-
-@media (max-width: 640px) {
-  .prose-custom table {
-    @apply w-full block overflow-x-auto;
+/* Animation improvements */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
-  .prose-custom th,
-  .prose-custom td {
-    @apply min-w-[120px];
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (max-width: 768px) {
-  .notion-block:hover .drag-handle,
-  .notion-block:hover .block-controls {
-    @apply opacity-70;
-  }
-  
-  .block-controls {
-    @apply space-x-1;
-  }
-  
-  .block-controls button {
-    @apply h-8 w-8;
-  }
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
 }
