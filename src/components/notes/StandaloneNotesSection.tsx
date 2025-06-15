@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, Zap, BookOpen } from "lucide-react";
 import { NoteCard } from "./NoteCard";
 import { Note } from "@/types";
 
@@ -35,21 +35,21 @@ export function StandaloneNotesSection({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">
             Quick Notes
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Standalone notes for quick thoughts
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Capture fleeting thoughts and spontaneous ideas
           </p>
         </div>
         <Dialog open={isCreateNoteOpen} onOpenChange={setIsCreateNoteOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline">
-              <Plus className="mr-2 h-4 w-4" />
-              New Note
+            <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+              <Zap className="mr-2 h-5 w-5" />
+              Quick Note
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -94,6 +94,7 @@ export function StandaloneNotesSection({
                         className="justify-start"
                         onClick={() => setSelectedNotebook(notebook.id)}
                       >
+                        <BookOpen className="mr-2 h-4 w-4" />
                         <span className="truncate">{notebook.title}</span>
                       </Button>
                     ))}
@@ -108,10 +109,18 @@ export function StandaloneNotesSection({
         </Dialog>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {standaloneNotes.map(note => (
-          <div key={note.id} className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-md transition-shadow">
-            <div className="p-4">
+          <div key={note.id} className="group bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300">
+            <div className="p-6">
+              <div className="flex items-center mb-3">
+                <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg p-2 mr-3">
+                  <FileText className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/50 px-2 py-1 rounded-full">
+                  Quick Note
+                </span>
+              </div>
               <NoteCard note={note} />
             </div>
           </div>
